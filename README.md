@@ -28,7 +28,8 @@ Chrome extension to instantly check if your webpage is indexed by Google Search
 
 1. インストール後、Chrome のツールバーに表示されるアイコンをクリック
 2. 現在表示中のページのインデックス状況が自動的にチェックされます
-3. 詳細な検索結果を見るには「Google で確認」ボタンをクリック
+3. 「インデックス要求」ボタンをクリックすると、クリップボードにURLがコピーされ、Search Consoleにリダイレクトされます
+4. URLを貼り付けてインデックスをリクエストできます
 
 ## 開発者向け情報 / For Developers
 
