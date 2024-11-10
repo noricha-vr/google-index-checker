@@ -49,6 +49,12 @@ function updateUI(isTargetUrl, isIndexed, currentUrl) {
         currentUrl
     });
 
+    // currentUrlをログに出力
+    console.log('Current URL:', currentUrl);
+    const inspectUrl = encodeURIComponent(currentUrl);
+    const indexRequestUrl = `https://search.google.com/search-console/inspect?resource_id=sc-domain:${inspectUrl}`;
+    console.log('Index request URL:', indexRequestUrl);
+
     // ローディング非表示
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('content').classList.remove('hidden');
@@ -81,15 +87,29 @@ function updateUI(isTargetUrl, isIndexed, currentUrl) {
         }
 
         // GSCボタンのイベントリスナー設定
-        gscButton.onclick = () => {
-            const inspectUrl = encodeURIComponent(currentUrl);
-            const gscUrl = `https://search.google.com/search-console/inspect?resource_id=sc-domain:${new URL(currentUrl).hostname}&url=${inspectUrl}`;
-            chrome.tabs.create({ url: gscUrl });
+        gscButton.onclick = async () => {
+            // クリップボードにURLをコピー
+            await navigator.clipboard.writeText(currentUrl)
+                .then(() => {
+                    console.log('URL copied to clipboard:', currentUrl);
+                    // コピー成功を通知するメッセージを表示（オプション）
+                    const messageEl = document.createElement('div');
+                    messageEl.textContent = 'URLをクリップボードにコピーしました';
+                    messageEl.className = 'copy-message';
+                    document.getElementById('non-target-content').appendChild(messageEl);
+
+                    // メッセージを3秒後に消す
+                    setTimeout(() => messageEl.remove(), 3000);
+                })
+                .catch(err => console.error('Failed to copy URL:', err));
+            chrome.tabs.create({ url: indexRequestUrl });
         };
     } else {
         // 対象外URLの場合
         console.log('Showing non-target URL content');
         document.getElementById('non-target-content').classList.remove('hidden');
+
+
     }
 }
 
