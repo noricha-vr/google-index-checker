@@ -61,7 +61,7 @@ async function checkIndexStatus(url) {
         // インデックスされている場合のシグナル
         const indexedSignals = [
             'class="LC20lb"',     // 検索結果のタイトルクラス
-            'class="VwiC3b"',     // 検索結果の説明文クラス
+            'class="VwiC3b"',     // 検索結果の説明文ク���
             'class="yuRUbf"',     // 検索結果のコンテナクラス
             'data-hveid'          // 検索結果の属性
         ];
@@ -105,8 +105,25 @@ async function checkIndexStatus(url) {
 
 // URLが監視対象のドメインに属しているかチェック
 function isTargetUrl(url, targetDomains) {
-    if (!targetDomains?.length) return false;
-    return targetDomains.some(domain => url.includes(domain));
+    try {
+        if (!targetDomains?.length) return false;
+
+        // URLオブジェクトを作成
+        const urlObj = new URL(url);
+        const hostname = urlObj.hostname;
+
+        console.log('Checking hostname:', hostname);
+
+        // ホスト名が監視対象ドメインと完全一致するか、
+        // またはサブドメインとして含まれているかをチェック
+        return targetDomains.some(domain =>
+            hostname === domain ||
+            hostname.endsWith(`.${domain}`)
+        );
+    } catch (error) {
+        console.error('Invalid URL:', url);
+        return false;
+    }
 }
 
 // タブ更新時の処理
@@ -116,15 +133,46 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     const currentUrl = tab.url;
     console.log(`Tab updated: ${currentUrl}`);
 
-    // 登録済みドメインかチェック
-    const { targetDomains } = await chrome.storage.sync.get('targetDomains');
-    console.log('Target domains:', targetDomains);
+    // 特定のURLは除外（Google検索やSearch Console等）
+    const excludedDomains = [
+        'google.com',
+        'google.co.jp',
+        'chrome-extension://'
+    ];
 
-    if (!isTargetUrl(currentUrl, targetDomains)) {
-        console.log('URL not in target domains');
+    try {
+        const urlObj = new URL(currentUrl);
+        if (excludedDomains.some(domain => urlObj.hostname.includes(domain))) {
+            console.log('Excluded domain, skipping check');
+            await updateIcon(tabId, null);
+            return;
+        }
+    } catch (error) {
+        console.error('Invalid URL:', currentUrl);
         await updateIcon(tabId, null);
         return;
     }
+
+    // 登録済みドメインかチェック
+    const { targetDomains = [] } = await chrome.storage.sync.get('targetDomains');
+    console.log('Target domains:', targetDomains);
+
+    // targetDomainsが空の場合も考慮
+    if (!targetDomains || !targetDomains.length) {
+        console.log('No target domains configured');
+        await updateIcon(tabId, null);
+        return;
+    }
+
+    // isTargetUrl関数を使用して判定
+    if (!isTargetUrl(currentUrl, targetDomains)) {
+        console.log('URL not in target domains:', currentUrl);
+        await updateIcon(tabId, null);
+        return;
+    }
+
+    // 以降の処理は対象URLの場合のみ実行
+    console.log('URL is in target domains, proceeding with check');
 
     // キャッシュチェック
     const cache = await IndexStatusCache.get(currentUrl);
