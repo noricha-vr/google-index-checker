@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Google Index Checker - 設定</title>
+    <style>
+        body {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 24px;
+            font-family: sans-serif;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .domain-list {
+            margin-top: 24px;
+        }
+
+        .domain-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .domain-item button {
+            margin-left: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>監視対象ドメインの設定</h1>
+
+    <div class="form-group">
+        <input id="domain-input" placeholder="example.com" type="text">
+        <button id="add-button">追加</button>
+    </div>
+
+    <div id="domain-list" class="domain-list">
+    </div>
+
+    <script src="options.js"></script>
+</body>
+
+</html>
